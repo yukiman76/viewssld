@@ -44,10 +44,10 @@ static char *tolow(char *str);
 void errorlog(char *message)
 {
 	if (config.daemon)
-		syslog(LOG_DAEMON|LOG_ERR, message);
+		syslog(LOG_DAEMON|LOG_ERR, "%s", message);
 	else
 	{
-		fprintf(stderr, message);
+		fprintf(stderr, "%s", message);
 		putchar('\n');
 	}
 
