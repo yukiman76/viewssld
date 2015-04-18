@@ -32,7 +32,7 @@
 #include <libnet.h>
 #include <openssl/ssl.h>
 #include <pcap.h>
-#include <dssl/sslcap.h>
+#include <sslcap.h>
 
 #include "viewssld.h"
 #include "utils.h"

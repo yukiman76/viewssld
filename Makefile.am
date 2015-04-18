@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src doc
+SUBDIRS = $(DSSL_DIR) src doc
 CLEANFILES = distribute.sh Makefile src/Makefile src/*~

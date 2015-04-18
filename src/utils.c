@@ -26,7 +26,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <net/if.h>
-#include <dssl/sslcap.h>
+#include <sslcap.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <syslog.h>
