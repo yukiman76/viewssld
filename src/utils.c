@@ -273,6 +273,22 @@ int load_config(const char *path, struct _config *config)
 			strcpy(config->cap[index]->pwd, val);
 		}
 		// common options
+		else if (!strcmp(key,"server_random"))
+		{
+			strncpy(config->client_random, val, SSL3_RANDOM_SIZE<<1+1);
+		}
+		else if (!strcmp(key,"client_random"))
+		{
+			strncpy(config->client_random, val, SSL3_RANDOM_SIZE<<1+1);
+		}
+		else if (!strcmp(key,"premaster"))
+		{
+			strncpy(config->premaster, val, SSL3_MASTER_SECRET_SIZE<<1+1);
+		}
+		else if (!strcmp(key,"master"))
+		{
+			strncpy(config->master, val, SSL3_MASTER_SECRET_SIZE<<1+1);
+		}
 		else if (!strcmp(key,"loglevel"))
 		{
 			if (block)
