@@ -349,6 +349,11 @@ void print_config(struct _config *cfg)
 		printf("\t| Server IP address: %-31s|\n", inet_ntoa(cfg->cap[index]->server_ip));
 		printf("\t| TCP Port: %-40d|\n",cfg->cap[index]->port);
                 printf("\t| TCP DSSL Port: %-35d|\n",cfg->cap[index]->dsslport);
+                printf("\t| Premaster key: %s|\n",cfg->premaster);
+                printf("\t| Master key: %s|\n",cfg->master);
+                printf("\t| Client Random: %s|\n",cfg->client_random);
+                printf("\t| Server Random: %s|\n",cfg->server_random);
+                printf("\t| TCP DSSL Port: %-35d|\n",cfg->cap[index]->dsslport);
 		printf("\t+---------------------------------------------------+\n\n");
 	}
 
