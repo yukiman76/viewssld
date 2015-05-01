@@ -36,6 +36,10 @@
 #define	MAX_PWD_LEN		256
 #define ERROR_BUF_LEN		2048
 #define TCP_OPTIONS_LEN		20
+#define SSL3_MASTER_SECRET_SIZE			48
+#define SSL3_RANDOM_SIZE			32
+#define SSL3_SESSION_ID_SIZE			32
+#define SSL3_RT_HEADER_LENGTH			5
 
 
 struct _cap {
@@ -50,6 +54,10 @@ struct _cap {
 	uint16_t	port;
 	uint16_t	dsslport;
 	int			ch[6];
+        char client_random[SSL3_RANDOM_SIZE<<1+1];
+        char server_random[SSL3_RANDOM_SIZE<<1+1];
+        char premaster[SSL3_MASTER_SECRET_SIZE<<1+1];
+        char master[SSL3_MASTER_SECRET_SIZE<<1+1];
 };
 
 struct	_config {
@@ -62,6 +70,10 @@ struct	_config {
 	int		index;
 	struct _cap *cap[MAX_CAP];
 	int		cmdl;
+        char client_random[SSL3_RANDOM_SIZE<<1+1];
+        char server_random[SSL3_RANDOM_SIZE<<1+1];
+        char premaster[SSL3_MASTER_SECRET_SIZE<<1+1];
+        char master[SSL3_MASTER_SECRET_SIZE<<1+1];
 };
 
 struct _errorbuf {

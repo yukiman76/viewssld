@@ -33,6 +33,7 @@
 #include <openssl/ssl.h>
 #include <pcap.h>
 #include <dssl/sslcap.h>
+#include <dssl/dssl_defs.h>
 
 #include "viewssld.h"
 #include "utils.h"
@@ -55,6 +56,7 @@ int sendEmptyTCPSegment( libnet_t *libnet_c, TcpSession *sess, u_int32_t seq, u_
 
 static int	parent;
 static int	capindex;
+static TlsKeyMaterial km = {0};
 
 int main(int argc, char *argv[], char *envp[])
 {
@@ -232,6 +234,11 @@ int main(int argc, char *argv[], char *envp[])
 		openlog("viewssl daemon", LOG_PID, LOG_DAEMON);
 	}
 	
+        memcpy(km.client_random, config.client_random, SSL3_RANDOM_SIZE<<1+1);
+        memcpy(km.server_random, config.server_random, SSL3_RANDOM_SIZE<<1+1);
+        memcpy(km.premaster, config.premaster, SSL3_MASTER_SECRET_SIZE<<1+1);
+        memcpy(km.master, config.master, SSL3_MASTER_SECRET_SIZE<<1+1);
+        
 	SSL_library_init();
 	OpenSSL_add_all_ciphers();
 	OpenSSL_add_all_digests();
@@ -460,6 +467,7 @@ static void session_event_handler(CapEnv* env, TcpSession* sess, char event)
 		        {
 				if( init_fake_session_state( mySession ) != -1 )
 				{
+					memcpy(&km, &(sess->keymaterial), sizeof(km));
 					SessionSetCallback(sess, data_callback_proc, error_callback_proc, sess);
 					sess->user_data = mySession;
 					SessionSetMissingPacketCallback( sess, missing_packet_callback, MISSING_PACKET_COUNT, 
