@@ -345,7 +345,9 @@ static int proceed(void)
 	// First 0 means use default key_timeout_interval - libdssl 2.1.1 will use 3600 here
 	// Second 0 means use default tcp_timeout_interval - libdssl 2.1.1 will use 180 here
 	env = CapEnvCreate(p, 255, 0, 0);
-        rc = -1;
+        fprintf(stderr, "initilizing server with keys?\n premaster:%s \nmaster:%s\n",
+             config.cap[capindex]->premaster, config.cap[capindex]->master);
+        fprintf(stderr, "initilizing server\n");
         fprintf(stderr, "initilizing server\n");
         if (strlen(config.cap[capindex]->keyfile))
 	    rc = CapEnvSetSSL_ServerInfo(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port, 

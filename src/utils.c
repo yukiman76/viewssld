@@ -275,20 +275,21 @@ int load_config(const char *path, struct _config *config)
 		// common options
 		else if (!strcmp(key,"server_random"))
 		{
-			strncpy(config->client_random, val, SSL3_RANDOM_SIZE<<1+1);
+			strcpy(config->client_random, val);//, SSL3_RANDOM_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"client_random"))
 		{
-			strncpy(config->client_random, val, SSL3_RANDOM_SIZE<<1+1);
+			strcpy(config->client_random, val);//, SSL3_RANDOM_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"premaster"))
 		{
-			fprintf(stderr, "Parsing premaster, got: %s\n", val);
-			strncpy(config->premaster, val, SSL3_MASTER_SECRET_SIZE<<1+1);
+			strcpy(config->premaster, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
+			fprintf(stderr, "Parsing premaster, got: %s\n", config->premaster);
 		}
 		else if (!strcmp(key,"master"))
 		{
-			strncpy(config->master, val, SSL3_MASTER_SECRET_SIZE<<1+1);
+			strcpy(config->master, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
+			fprintf(stderr, "Parsing master, got: %s\n", config->master);
 		}
 		else if (!strcmp(key,"loglevel"))
 		{
