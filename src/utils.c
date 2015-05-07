@@ -283,6 +283,7 @@ int load_config(const char *path, struct _config *config)
 		}
 		else if (!strcmp(key,"premaster"))
 		{
+			fprintf(stderr, "Parsing premaster, got: %s\n", val);
 			strncpy(config->premaster, val, SSL3_MASTER_SECRET_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"master"))
@@ -475,16 +476,16 @@ int check_config(struct _config *cfg)
 				printf("Please, define port number: key \"port\" in config file in section [\"%s\"] is obligatory.",cfg->cap[index]->title);
 			optchk = 1;
 		}
-
-		if (strlen(cfg->cap[index]->keyfile) < 1)
-		{
-			if (cfg->cmdl)
-				puts("Please, define keyfile path: option \"-k\" (or \"--key\") is obligatory.");
-			else
-				printf("Please, define keyfile path: key \"key\" in config file in section [\"%s\"] is obligatory.",cfg->cap[index]->title);
-			optchk = 1;
-		}
+		//if (strlen(cfg->cap[index]->keyfile) < 1 && strlen(cfg->cap[index]->premaster) < 1)
+		//{
+		//	if (cfg->cmdl)
+		//		puts("Please, define keyfile path: option \"-k\" (or \"--key\") is obligatory.");
+		//	else
+		//		printf("Please, define keyfile path: key \"key\" in config file in section [\"%s\"] is obligatory.",cfg->cap[index]->title);
+		//	optchk = 1;
+		//}
 	}
+        optchk = 0;
 	if (optchk)
 		return(1);
 	else

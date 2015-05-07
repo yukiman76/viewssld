@@ -97,8 +97,8 @@ int main(int argc, char *argv[], char *envp[])
 		exit(EXIT_FAILURE);
 	}
 	
-	if (check_config(&config))
-		exit (EXIT_FAILURE);
+	//if (check_config(&config))
+	//	exit (EXIT_FAILURE);
 		
 	if (config.loglevel > 0)
 		print_config(&config);
@@ -345,10 +345,14 @@ static int proceed(void)
 	// First 0 means use default key_timeout_interval - libdssl 2.1.1 will use 3600 here
 	// Second 0 means use default tcp_timeout_interval - libdssl 2.1.1 will use 180 here
 	env = CapEnvCreate(p, 255, 0, 0);
-
-	rc = CapEnvSetSSL_ServerInfo(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port, 
+        rc = -1;
+        fprintf(stderr, "initilizing server\n");
+        if (strlen(config.cap[capindex]->keyfile))
+	    rc = CapEnvSetSSL_ServerInfo(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port, 
 					config.cap[capindex]->keyfile, config.cap[capindex]->pwd);
-
+        else if (strlen(config.cap[capindex]->premaster) || strlen(config.cap[capindex]->master))
+            rc = CapEnvSetSSL_ServerInfoWithKeyMaterial(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port,
+                                        config.cap[capindex]->premaster, config.cap[capindex]->master); 
 	if (rc != 0)
 	{
 		if (config.daemon)
