@@ -2,13 +2,13 @@
  * This file is a part of viewssld package.
  *
  * Copyright 2007 Dzmitry Plashchynski <plashchynski@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -125,7 +125,7 @@ void DumpData(const u_char* data, uint32_t sz)
 
 	for (i = 0; i < sz; i++)
 	{
-		if (isprint(data[i]) || data[i] == '\n' || data[i] == '\t' || data[i] == '\r') 
+		if (isprint(data[i]) || data[i] == '\n' || data[i] == '\t' || data[i] == '\r')
 			putc(data[i], stdout);
 		else
 			putc('.', stdout);
@@ -144,8 +144,8 @@ int getmac(const char *name, u_int8_t *mac)
 	memset(&ifr,0,sizeof(struct ifreq));
 	strcpy(ifr.ifr_name, name);
 	r = ioctl(ctl_sk, SIOCGIFHWADDR, &ifr);
-	memcpy(mac, ifr.ifr_hwaddr.sa_data, 6); 
-	return r; 
+	memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
+	return r;
 }
 
 /* for load config */
@@ -285,6 +285,8 @@ int load_config(const char *path, struct _config *config)
 		{
 			strcpy(config->premaster, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
 			fprintf(stderr, "Parsing premaster, got: %s\n", config->premaster);
+			fprintf(stderr, "premaster len: %d, max len: %d\n", strlen(config->premaster), sizeof(strlen(config->premaster)));
+			
 		}
 		else if (!strcmp(key,"master"))
 		{
@@ -632,7 +634,7 @@ int optparse(struct _config *config, char argc, char ** argv, char ** envp)
 					case 'p':
 						config->cap[0]->port = (uint16_t) atoi(optarg);
 						if (config->cap[0]->port == 0) // it will always < 65535 due to limited range of data type
-						{ 
+						{
 							fprintf(stderr, "Invalid TCP port value \"%d\".\n", \
 							config->cap[0]->port);
 							return(-1);

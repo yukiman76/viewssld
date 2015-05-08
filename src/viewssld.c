@@ -2,13 +2,13 @@
  * This file is a part of viewssld package.
  *
  * Copyright 2007 Dzmitry Plashchynski <plashchynski@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -330,12 +330,12 @@ static int proceed(void)
 
 	sprintf( filter_exp, "ip host %s and tcp port %d",  inet_ntoa(config.cap[capindex]->server_ip), config.cap[capindex]->port );
 
-	if (pcap_compile(p, &fp, filter_exp, 0, 0) == -1) 
+	if (pcap_compile(p, &fp, filter_exp, 0, 0) == -1)
 	{
 		 fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(p));
 		 return(-1);
 	}
-	if (pcap_setfilter(p, &fp) == -1) 
+	if (pcap_setfilter(p, &fp) == -1)
 	{
 		 fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(p));
 		 return(-1);
@@ -345,16 +345,19 @@ static int proceed(void)
 	// First 0 means use default key_timeout_interval - libdssl 2.1.1 will use 3600 here
 	// Second 0 means use default tcp_timeout_interval - libdssl 2.1.1 will use 180 here
 	env = CapEnvCreate(p, 255, 0, 0);
-        fprintf(stderr, "initilizing server with keys?\n premaster:%s \nmaster:%s\n",
+    fprintf(stderr, "initilizing server with keys?\n premaster:%s \nmaster:%s\n",
              config.cap[capindex]->premaster, config.cap[capindex]->master);
-        fprintf(stderr, "initilizing server\n");
-        fprintf(stderr, "initilizing server\n");
-        if (strlen(config.cap[capindex]->keyfile))
-	    rc = CapEnvSetSSL_ServerInfo(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port, 
+    fprintf(stderr, "initilizing server\n");
+    if (strlen(config.cap[capindex]->keyfile))
+	    rc = CapEnvSetSSL_ServerInfo(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port,
 					config.cap[capindex]->keyfile, config.cap[capindex]->pwd);
-        else if (strlen(config.cap[capindex]->premaster) || strlen(config.cap[capindex]->master))
-            rc = CapEnvSetSSL_ServerInfoWithKeyMaterial(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port,
-                                        config.cap[capindex]->premaster, config.cap[capindex]->master); 
+    else if (strlen(config.cap[capindex]->premaster) || strlen(config.cap[capindex]->master)){
+		fprintf(stderr, "wtf mat3?\n");
+        rc = CapEnvSetSSL_ServerInfoWithKeyMaterial(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port,
+                                        config.cap[capindex]->premaster, config.cap[capindex]->master);
+	} else {
+		rc = 0;
+	}
 	if (rc != 0)
 	{
 		if (config.daemon)
@@ -397,7 +400,7 @@ static int missing_packet_callback(NM_PacketDir dir, void* user_data, uint32_t p
 {
 	if (config.daemon)
 		syslog(LOG_CRIT, "Missing packet(s) detected.");
-	else		
+	else
 		fprintf(stderr,"Missing packet(s) detected; missing segment size %u", pkt_size);
 	
 	return 1; /* skip and continue */
@@ -440,7 +443,7 @@ int init_fake_session_state( FakeSessionState*	fakeSess )
                         fprintf(stderr, "Error seeding libnet prand: %s.\n", errbuf.libnet);
 
 		libnet_destroy( fakeSess->ln );
-		return( -1 );		
+		return( -1 );
 	}
 
 	// Initialise other member variables
@@ -476,7 +479,7 @@ static void session_event_handler(CapEnv* env, TcpSession* sess, char event)
 					memcpy(&km, &(sess->keymaterial), sizeof(km));
 					SessionSetCallback(sess, data_callback_proc, error_callback_proc, sess);
 					sess->user_data = mySession;
-					SessionSetMissingPacketCallback( sess, missing_packet_callback, MISSING_PACKET_COUNT, 
+					SessionSetMissingPacketCallback( sess, missing_packet_callback, MISSING_PACKET_COUNT,
 						MISSING_PACKET_TIMEOUT );
 				}
 				else
@@ -534,7 +537,7 @@ static void session_event_handler(CapEnv* env, TcpSession* sess, char event)
 }
 
 // Sends an empty TCP segment with the specified parameters
-int sendEmptyTCPSegment( libnet_t               *libnet_c, 
+int sendEmptyTCPSegment( libnet_t               *libnet_c,
 			 TcpSession             *sess,
 			 u_int32_t		seq,
 			 u_int32_t		ack,
@@ -705,7 +708,7 @@ static void data_callback_proc(NM_PacketDir dir, void* user_data, u_char* pkt_pa
 
 		// Increment count of bytes written
                 bytes_written += bytes_to_write;
-		if( dir == ePacketDirFromClient ) 
+		if( dir == ePacketDirFromClient )
 			mySession->clientSeq += bytes_to_write;
 		else
 			mySession->serverSeq += bytes_to_write;
@@ -742,7 +745,7 @@ static void data_callback_proc(NM_PacketDir dir, void* user_data, u_char* pkt_pa
 				if (config.daemon)
 					syslog(LOG_ERR, "Can't build IP header: %s", libnet_geterror(libnet_c));
 				else
-					fprintf(stderr, "Can't build IP header: %s\n", libnet_geterror(libnet_c));					
+					fprintf(stderr, "Can't build IP header: %s\n", libnet_geterror(libnet_c));
 			}
 			else
 			{
