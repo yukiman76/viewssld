@@ -52,8 +52,14 @@ struct _cap {
 	char		pwd[MAX_PWD_LEN];
 	struct	in_addr  server_ip;
 	uint16_t	port;
+	struct	in_addr  client_ip;
+	uint16_t	client_port;
 	uint16_t	dsslport;
 	int			ch[6];
+        char server_ip_str[512];
+        char client_ip_str[512];
+        char server_session[1024];
+        char client_session[1024];
         char client_random[SSL3_RANDOM_SIZE<<1+1];
         char server_random[SSL3_RANDOM_SIZE<<1+1];
         char premaster[SSL3_MASTER_SECRET_SIZE<<1+1];
@@ -61,6 +67,7 @@ struct _cap {
 };
 
 struct	_config {
+	char		pcap_file[FILENAME_MAX];
 	int		loglevel;
 	char	pidfilename[FILENAME_MAX];
 	char	imagefile[FILENAME_MAX];
@@ -70,10 +77,6 @@ struct	_config {
 	int		index;
 	struct _cap *cap[MAX_CAP];
 	int		cmdl;
-        char client_random[SSL3_RANDOM_SIZE<<1+1];
-        char server_random[SSL3_RANDOM_SIZE<<1+1];
-        char premaster[SSL3_MASTER_SECRET_SIZE<<1+1];
-        char master[SSL3_MASTER_SECRET_SIZE<<1+1];
 };
 
 struct _errorbuf {

@@ -100,7 +100,7 @@ int main(int argc, char *argv[], char *envp[])
 	//if (check_config(&config))
 	//	exit (EXIT_FAILURE);
 		
-	if (config.loglevel > 0)
+	//if (config.loglevel > 0)
 		print_config(&config);
 		
 	if (getuid() != 0)
@@ -234,10 +234,6 @@ int main(int argc, char *argv[], char *envp[])
 		openlog("viewssl daemon", LOG_PID, LOG_DAEMON);
 	}
 	
-        memcpy(km.client_random, config.client_random, SSL3_RANDOM_SIZE<<1+1);
-        memcpy(km.server_random, config.server_random, SSL3_RANDOM_SIZE<<1+1);
-        memcpy(km.premaster, config.premaster, SSL3_MASTER_SECRET_SIZE<<1+1);
-        memcpy(km.master, config.master, SSL3_MASTER_SECRET_SIZE<<1+1);
         
 	SSL_library_init();
 	OpenSSL_add_all_ciphers();
@@ -317,8 +313,11 @@ static int proceed(void)
 	int rc = 0;
 	struct bpf_program fp;		/* The compiled filter expression */
 	char filter_exp[1024];
-
-	p = pcap_open_live(config.cap[capindex]->src_interface, 1550, 1, 500, errbuf.common);
+        if (strlen(config.pcap_file)) {
+            fprintf(stderr, "Opening file: %s\n", config.pcap_file);
+            p = pcap_open_offline(config.pcap_file, errbuf.common);
+	} else 
+            p = pcap_open_live(config.cap[capindex]->src_interface, 1550, 1, 500, errbuf.common);
 	if (!p)
 	{
 		if (config.daemon)
@@ -329,7 +328,7 @@ static int proceed(void)
 	}
 
 	sprintf( filter_exp, "ip host %s and tcp port %d",  inet_ntoa(config.cap[capindex]->server_ip), config.cap[capindex]->port );
-
+        fprintf(stderr, "Applying filter: %s\n", filter_exp);
 	if (pcap_compile(p, &fp, filter_exp, 0, 0) == -1)
 	{
 		 fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(p));
@@ -347,17 +346,13 @@ static int proceed(void)
 	env = CapEnvCreate(p, 255, 0, 0);
     fprintf(stderr, "initilizing server with keys?\n premaster:%s \nmaster:%s\n",
              config.cap[capindex]->premaster, config.cap[capindex]->master);
-    fprintf(stderr, "initilizing server\n");
     if (strlen(config.cap[capindex]->keyfile))
 	    rc = CapEnvSetSSL_ServerInfo(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port,
 					config.cap[capindex]->keyfile, config.cap[capindex]->pwd);
     else if (strlen(config.cap[capindex]->premaster) || strlen(config.cap[capindex]->master)){
-		fprintf(stderr, "wtf mat3?\n");
         rc = CapEnvSetSSL_ServerInfoWithKeyMaterial(env, &config.cap[capindex]->server_ip, config.cap[capindex]->port,
                                         config.cap[capindex]->premaster, config.cap[capindex]->master);
-	} else {
-		rc = 0;
-	}
+	} 
 	if (rc != 0)
 	{
 		if (config.daemon)
@@ -460,7 +455,6 @@ static void session_event_handler(CapEnv* env, TcpSession* sess, char event)
 	char buff[512];
 	SessionToString(sess, buff);
 	FakeSessionState*	mySession;
-
 	switch(event)
 	{
 		case DSSL_EVENT_NEW_SESSION:
@@ -474,13 +468,25 @@ static void session_event_handler(CapEnv* env, TcpSession* sess, char event)
 
 		        if( ( mySession = malloc( sizeof( FakeSessionState ) ) ) != NULL )
 		        {
+                                TlsKeyMaterial km = {0};
+					fprintf(stderr, "\n Setting the session with the following client_random: %s\n", config.cap[capindex]->client_random);
+                                
+                                strcpy(km.client_random, config.cap[capindex]->client_random);
+					fprintf(stderr, "\n Setting the session with the following client_random: %s\n", km.client_random);
+                                strcpy(km.server_random, config.cap[capindex]->server_random);
+                                strcpy(km.premaster, config.cap[capindex]->premaster);
+                                strcpy(km.master, config.cap[capindex]->master);
+                                if (sess->ssl_session) {
+                                    DSSL_SessionSetTlsKeyMaterial(sess->ssl_session, &km);
+                                }
 				if( init_fake_session_state( mySession ) != -1 )
 				{
-					memcpy(&km, &(sess->keymaterial), sizeof(km));
+					//memcpy(&km, &(sess->keymaterial), sizeof(km));
 					SessionSetCallback(sess, data_callback_proc, error_callback_proc, sess);
 					sess->user_data = mySession;
 					SessionSetMissingPacketCallback( sess, missing_packet_callback, MISSING_PACKET_COUNT,
 						MISSING_PACKET_TIMEOUT );
+                                        //DSSL_SessionSetTlsKeyMaterial
 				}
 				else
 				{

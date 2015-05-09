@@ -238,8 +238,33 @@ int load_config(const char *path, struct _config *config)
 				return(-1);
 			}
 		}
+		else if (!strcmp(key,"client_ip"))
+		{
+                        strcpy(config->cap[index]->client_ip_str, val);
+			if (config->cap[index]->port > 0) 
+                            sprintf(config->cap[index]->client_session, "%s:%d", val, config->cap[index]->client_port); 
+			if (inet_aton(val, &config->cap[index]->client_ip) == 0)
+			{
+				fprintf(stderr, "Invalid IP address format \"%s\".\n", val);
+				return(-1);
+			}
+		}
+		else if (!strcmp(key,"client_port"))
+		{
+                        if (config->cap[index]->client_ip_str[0] != 0)
+                            sprintf(config->cap[index]->client_session, "%s:%s", config->cap[index]->client_ip_str, val);
+			config->cap[index]->port = (uint16_t) atoi(val);
+			if (config->cap[index]->port == 0) // it will always < 65535 due to limited range of data type
+			{
+				fprintf(stderr, "Invalid TCP port value \"%d\".\n", config->cap[index]->port);
+				return(-1);
+			}
+		}
 		else if (!strcmp(key,"ip"))
 		{
+                        strcpy(config->cap[index]->server_ip_str, val);
+			if (config->cap[index]->port > 0) 
+                            sprintf(config->cap[index]->server_session, "%s:%d", val, config->cap[index]->port); 
 			if (inet_aton(val, &config->cap[index]->server_ip) == 0)
 			{
 				fprintf(stderr, "Invalid IP address format \"%s\".\n", val);
@@ -248,6 +273,8 @@ int load_config(const char *path, struct _config *config)
 		}
 		else if (!strcmp(key,"port"))
 		{
+                        if (config->cap[index]->server_ip_str[0] != 0)
+                            sprintf(config->cap[index]->server_session, "%s:%s", config->cap[index]->server_ip_str, val);
 			config->cap[index]->port = (uint16_t) atoi(val);
 			if (config->cap[index]->port == 0) // it will always < 65535 due to limited range of data type
 			{
@@ -264,6 +291,10 @@ int load_config(const char *path, struct _config *config)
                                 return(-1);
                         }
                 }
+		else if (!strcmp(key,"pcap_file"))
+		{
+			strcpy(config->pcap_file,val);
+		}
 		else if (!strcmp(key,"key"))
 		{
 			strcpy(config->cap[index]->keyfile, val);
@@ -275,23 +306,19 @@ int load_config(const char *path, struct _config *config)
 		// common options
 		else if (!strcmp(key,"server_random"))
 		{
-			strcpy(config->client_random, val);//, SSL3_RANDOM_SIZE<<1+1);
+			strcpy(config->cap[index]->server_random, val);//, SSL3_RANDOM_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"client_random"))
 		{
-			strcpy(config->client_random, val);//, SSL3_RANDOM_SIZE<<1+1);
+			strcpy(config->cap[index]->client_random, val);//, SSL3_RANDOM_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"premaster"))
 		{
-			strcpy(config->premaster, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
-			fprintf(stderr, "Parsing premaster, got: %s\n", config->premaster);
-			fprintf(stderr, "premaster len: %d, max len: %d\n", strlen(config->premaster), sizeof(strlen(config->premaster)));
-			
+			strcpy(config->cap[index]->premaster, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"master"))
 		{
-			strcpy(config->master, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
-			fprintf(stderr, "Parsing master, got: %s\n", config->master);
+			strcpy(config->cap[index]->master, val);//, SSL3_MASTER_SECRET_SIZE<<1+1);
 		}
 		else if (!strcmp(key,"loglevel"))
 		{
@@ -321,6 +348,7 @@ int load_config(const char *path, struct _config *config)
 		free(val);
 
 	} // while
+        
 
 	fclose(fd);
 	return(0);
@@ -353,10 +381,10 @@ void print_config(struct _config *cfg)
 		printf("\t| Server IP address: %-31s|\n", inet_ntoa(cfg->cap[index]->server_ip));
 		printf("\t| TCP Port: %-40d|\n",cfg->cap[index]->port);
                 printf("\t| TCP DSSL Port: %-35d|\n",cfg->cap[index]->dsslport);
-                printf("\t| Premaster key: %s|\n",cfg->premaster);
-                printf("\t| Master key: %s|\n",cfg->master);
-                printf("\t| Client Random: %s|\n",cfg->client_random);
-                printf("\t| Server Random: %s|\n",cfg->server_random);
+                printf("\t| Premaster key: %s|\n",cfg->cap[index]->premaster);
+                printf("\t| Master key: %s|\n",cfg->cap[index]->master);
+                printf("\t| Client Random: %s|\n",cfg->cap[index]->client_random);
+                printf("\t| Server Random: %s|\n",cfg->cap[index]->server_random);
                 printf("\t| TCP DSSL Port: %-35d|\n",cfg->cap[index]->dsslport);
 		printf("\t+---------------------------------------------------+\n\n");
 	}
@@ -412,7 +440,7 @@ char *dssl_error(int n)
 		case DSSL_E_SSL_BAD_CERTIFICATE:
 			return("Bad server certificate detected");
 		case DSSL_E_UNINITIALIZED_ARGUMENT:
-			return("SSL: ephemeral keys cannot be decrypted");
+			return("SSL: Uninitialized argument??");
 		case DSSL_E_SSL_CANNOT_DECRYPT_EPHEMERAL:
 			return("SSL: ephemeral keys cannot be decrypted");
 		case DSSL_E_SSL_CANNOT_DECRYPT_NON_RSA:
