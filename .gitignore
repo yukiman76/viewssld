@@ -3,6 +3,7 @@ config.log
 autom4te.cache/
 config.status
 .deps
+.DS_Store
 Makefile
 Makefile.in
 distribute.sh
